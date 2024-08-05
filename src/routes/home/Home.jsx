@@ -50,15 +50,15 @@ const Home = () => {
       render: (text, record, index) => <p className="text-blue-900">{index + 1}</p>
     },
     {
+      title: <div className="text-blue-900">{"Avatar"}</div>,
+      key: "avatar",
+      render: (item) => <img className="w-[30px] rounded-full" src={item.avatar} alt=""/>
+    },
+    {
       title: <div className="flex items-center gap-2 text-blue-900"><FaUser/> {"Name"}</div>,
       dataIndex: 'name',
       key: "name",
       render: (name) => `${name}`,
-    },
-    {
-      title: <div className="text-blue-900">{"Avatar"}</div>,
-      key: "avatar",
-      render: (avatar) => <img src={avatar} alt=""/>
     },
     {
       title: <div className="flex items-center gap-2 text-blue-900"><FaPhoneAlt/> {'Phone Number'}</div>,
@@ -81,7 +81,6 @@ const Home = () => {
     {
       title: <div className="flex items-center gap-2 text-blue-900"><GoDotFill/> {'Status'}</div>,
       key: 'status',
-      dataIndex: 'status',
       render: (user) => (
           <Button onClick={() => changeActiveUser(user)} className="border-none bg-transparent"
                   style={user.status ? {color: "green"} : {color: "red"}}>{user.status ? "Active" : "InActive"}</Button>
