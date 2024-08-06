@@ -1,17 +1,26 @@
-import {useAddNewUserMutation, useChangeActiveMutation, useDeleteUserMutation, useGetAllUsersQuery} from "../../redux/api/users-api.jsx";
+import {
+  useAddNewUserMutation,
+  useChangeActiveMutation,
+  useDeleteUserMutation,
+  useEditUserMutation,
+  useGetAllUsersQuery
+} from "../../redux/api/users-api.jsx";
 import {Button, Form, Input, InputNumber, Modal, notification, Table} from 'antd';
 import Loading from "../../components/loading/Loading.jsx";
 import {FaUser, FaPhoneAlt} from "react-icons/fa";
 import {MdAlternateEmail} from "react-icons/md";
 import {FaMapLocationDot} from "react-icons/fa6";
 import {GoDotFill} from "react-icons/go";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 const Home = () => {
   const {data, isLoading} = useGetAllUsersQuery()
   const [deletedUser] = useDeleteUserMutation()
   const [active] = useChangeActiveMutation()
   const [newUser] = useAddNewUserMutation()
+  const [editUser] = useEditUserMutation()
+  const [edituser, setEdituser] = useState(null)
+  const [form] = Form.useForm();
 
   const deleteUser = (id) => {
     deletedUser({id})
@@ -33,13 +42,36 @@ const Home = () => {
     setOpen(false);
 
   }
-  const onFinish = (value) => {
-    newUser({...value, status: false});
+  const onFinish = async (value) => {
+    if (edituser) {
+      await editUser({...value, id: edituser.id, completed: false, archived: false, edited: true})
+      form.resetFields();
+      notification.success({
+        message: "Updated user successfully",
+      })
+      setEdituser(null)
+    } else {
+      await newUser({...value, status: false});
+      notification.success({
+        message: "Created new user successfully",
+      })
+      setEdituser(null)
+    }
     setOpen(false);
-    notification.success({
-      message: "Created new user successfully",
-    })
   }
+  const editingUser = (user) => {
+    setEdituser(user)
+    setOpen(true)
+  }
+
+  useEffect(() => {
+    form.setFieldsValue({
+      ...edituser
+    });
+    if (edituser === null) {
+      form.resetFields();
+    }
+  }, [edituser]);
   const onFinishFailed = (errorInfo) => {
     console.log('Failed:', errorInfo);
   };
@@ -91,7 +123,7 @@ const Home = () => {
       title: <div className="flex items-center gap-2 text-blue-900">{'Action'}</div>,
       render: (user) => (
           <div className="flex items-center gap-2 ">
-            <Button className="bg-amber-400 border-none">Edit</Button>
+            <Button onClick={() => editingUser(user)} className="bg-amber-400 border-none">Edit</Button>
             <Button onClick={() => deleteUser(user.id)} danger type="primary">Delete</Button>
           </div>
       ),
@@ -108,6 +140,8 @@ const Home = () => {
                 <Modal title='Add new User' open={open} onOk={handleOk} onCancel={handleCancel} footer={null}
                        maskClosable={false} centered forceRender={true}>
                   <Form
+                      form={form}
+                      initialValues={edituser || {}}
                       name="basic"
                       labelCol={{
                         span: 8,
